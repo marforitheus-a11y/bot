@@ -10,10 +10,7 @@ def get_connection():
 def init_db():
     init_prices_table()
     init_subscription_prices()
-    
-    # --- ADICIONE ESSA LINHA AQUI: ---
-    init_payments_table() # <--- ESSENCIAL PARA O PAGAMENTO NÃO SUMIR
-    # ---------------------------------
+    init_payments_table()
     
     conn = get_connection()
     c = conn.cursor()
@@ -441,4 +438,5 @@ def get_payment_by_track_id(track_id):
 # No final do db.py
 
 # ⚠️ IMPORTANTE: 
+
 # Chame init_prices_table() dentro da função init_db() lá no começo do arquivo!
