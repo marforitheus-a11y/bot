@@ -72,102 +72,8 @@ def apply_blur(image_bytes):
         print(f"Erro ao aplicar blur: {e}")
         return None
         
-        # --- SISTEMA DE DEPÓSITO (INTEGRADO COM payment_service.py) ---
 
-async def deposit_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
-    
-    # Tenta pegar o valor digitado: /deposit 10
-    try:
-        amount = float(context.args[0])
-        if amount < 2: # O Oxapay tem minimo, geralmente uns 2 USD
-            await update.message.reply_text("⚠️ Mínimo para depósito é $2.00")
-            return
-    except (IndexError, ValueError):
-        await update.message.reply_text("⚠️ Use: `/deposit 10` (para adicionar $10)", parse_mode="Markdown")
-        return
 
-    msg = await update.message.reply_text("⏳ **Gerando Fatura OxaPay...**", parse_mode="Markdown")
-
-    # Chama o SEU arquivo payment_service.py
-    result = await payment_service.create_payment(user_id, amount)
-    
-    if result:
-        pay_link = result['pay_link']
-        track_id = result['track_id']
-        
-        # Salva na sessão temporária para checar depois
-        session = user_sessions.get(user_id, {})
-        session['payment_track_id'] = track_id
-        session['payment_amount'] = amount
-        user_sessions[user_id] = session # Atualiza sessão
-
-        # Botão para verificar
-        keyboard = [
-            [InlineKeyboardButton("🔗 Pagar Agora", url=pay_link)],
-            [InlineKeyboardButton("✅ Já Fiz o Pagamento", callback_data="check_deposit")]
-        ]
-        
-        await msg.edit_text(
-            f"💳 **Fatura Gerada!**\n\n"
-            f"💰 Valor: **${amount:.2f}**\n"
-            f"🆔 ID: `{track_id}`\n\n"
-            f"1. Clique no link e pague.\n"
-            f"2. Aguarde confirmação na blockchain.\n"
-            f"3. Clique no botão abaixo para liberar o saldo.",
-            reply_markup=InlineKeyboardMarkup(keyboard),
-            parse_mode="Markdown"
-        )
-    else:
-        await msg.edit_text("❌ Erro ao conectar com OxaPay. Tente novamente mais tarde.")
-#PAYMENT LOGIC
-async def check_deposit_btn(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    user_id = query.from_user.id
-    
-    # Recupera dados da sessão
-    session = user_sessions.get(user_id)
-    if not session or 'payment_track_id' not in session:
-        await query.answer("❌ Nenhuma fatura pendente encontrada nesta sessão.", show_alert=True)
-        return
-
-    track_id = session['payment_track_id']
-    amount = session['payment_amount']
-    
-    await query.answer("🔄 Verificando na Blockchain...")
-    
-    # Chama o SEU arquivo payment_service.py
-    status = await payment_service.check_payment_status(track_id)
-    
-    if status == 'Paid':
-        # 1. Adiciona o Saldo no Banco de Dados
-        db.update_balance(user_id, amount)
-        
-        # 2. Limpa a sessão para não receber 2x
-        del session['payment_track_id']
-        del session['payment_amount']
-        
-        current_balance = db.get_balance(user_id)
-        
-        await query.edit_message_text(
-            f"✅ **Pagamento Confirmado!**\n\n"
-            f"➕ Creditado: ${amount:.2f}\n"
-            f"💰 Saldo Atual: ${current_balance:.2f}"
-        )
-        
-    elif status == 'Waiting' or status == 'Confirming':
-        await query.answer("⏳ Pagamento ainda não confirmado. Aguarde alguns minutos e tente de novo.", show_alert=True)
-        
-    elif status == 'Expired':
-        await query.edit_message_text("❌ **Fatura Expirada.** Gere uma nova com /deposit.")
-        del session['payment_track_id']
-        
-    else:
-        await query.answer(f"Status Atual: {status}", show_alert=True)
-        
-# --- BOT LOGIC ---
-
-# No bot.py, substitua a função start por esta:
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
@@ -1320,4 +1226,5 @@ if __name__ == "__main__":
 
 if __name__ == "__main__":
     main()
+
 
