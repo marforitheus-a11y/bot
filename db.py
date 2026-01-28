@@ -1,3 +1,7 @@
+
+Folder highlights
+Project centers on a Python-based Telegram bot for document download, featuring OCR scanning, payment processing, and Drive synchronization.
+
 # db.py
 import sqlite3
 from datetime import datetime, timedelta
@@ -10,7 +14,10 @@ def get_connection():
 def init_db():
     init_prices_table()
     init_subscription_prices()
-    init_payments_table()
+    
+    # --- ADICIONE ESSA LINHA AQUI: ---
+    init_payments_table() # <--- ESSENCIAL PARA O PAGAMENTO NÃO SUMIR
+    # ---------------------------------
     
     conn = get_connection()
     c = conn.cursor()
@@ -438,5 +445,4 @@ def get_payment_by_track_id(track_id):
 # No final do db.py
 
 # ⚠️ IMPORTANTE: 
-
 # Chame init_prices_table() dentro da função init_db() lá no começo do arquivo!
