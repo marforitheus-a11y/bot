@@ -1,10 +1,14 @@
-﻿# payment_service.py
+
+Folder highlights
+Project centers on a Python-based Telegram bot for document download, featuring OCR scanning, payment processing, and Drive synchronization.
+
+# payment_service.py
 import httpx
 import json
 import os # Melhor usar variáveis de ambiente
 
 # ⚠️ IMPORTANTE: Use variável de ambiente ou troque a chave e não mostre a ninguém
-OXAPAY_KEY = "MY_KEY" 
+OXAPAY_KEY = "0RWRPM-SYDZQP-CQ2NBK-EIJB7N" 
 
 BASE_URL = "https://api.oxapay.com/merchants"
 
